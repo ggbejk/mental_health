@@ -1,0 +1,719 @@
+{
+  "info": {
+    "_postman_id": "e9f4f9e0-5f1c-4b7a-9a3b-7d1e8f9c7a6b",
+    "name": "高校学生心理危机预警与自助服务平台API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "高校学生心理危机预警与自助服务平台API测试集合\n\n**测试环境**：\n- 基础URL：http://localhost:8081\n- 认证：Bearer Token\n\n**账号信息**：\n- 管理员：admin001 / 123456\n- 辅导员：coun001 / 123456\n- 学生：stu001 / 123456"
+  },
+  "item": [
+    {
+      "name": "认证模块",
+      "item": [
+        {
+          "name": "用户登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"coun001\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "登录成功",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/login"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"userId\": 9,\n  \"username\": \"coun001\",\n  \"realName\": \"王老师\",\n  \"role\": \"COUNSELOR\",\n  \"college\": \"计算机学院\",\n  \"className\": \"软工2班\",\n  \"token\": \"3e24170b-8119-4e99-b2e0-0b0beba52996\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "学生模块",
+      "item": [
+        {
+          "name": "获取学生详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/1001",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取学生任务列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/tasks",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取任务题目",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/task/1/questions",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "提交测评",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taskId\": 1,\n  \"studentId\": 1,\n  \"answers\": [\n    {\n      \"questionId\": 25,\n      \"answerScore\": 3\n    },\n    {\n      \"questionId\": 26,\n      \"answerScore\": 4\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/student/task/submit",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "情绪日记模块",
+      "item": [
+        {
+          "name": "保存情绪日记",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"moodScore\": 4,\n  \"moodLabel\": \"平静\",\n  \"diaryText\": \"今天课程不算太多，整体状态比较平稳。\",\n  \"triggerEvent\": \"正常上课\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/student/emotion/save",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取情绪日记列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/emotion/list",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取情绪趋势",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/emotion/trend",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI聊天模块",
+      "item": [
+        {
+          "name": "保存聊天记录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"我最近压力很大\",\n  \"emotionTag\": \"焦虑\",\n  \"sourceType\": \"chat\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/student/ai-chat/save",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取聊天历史",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/ai-chat/history",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取情绪统计",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/ai-chat/emotion-stats",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "匿名倾诉模块",
+      "item": [
+        {
+          "name": "保存倾诉",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"最近学习压力很大\",\n  \"emotionTag\": \"焦虑\",\n  \"isAnonymous\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/student/confession/save",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取我的倾诉",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/confession/my",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "辅导员模块",
+      "item": [
+        {
+          "name": "获取预警列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/counselor/warnings",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取学生列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/counselor/students",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取干预记录列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/counselor/interventions",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "认领预警",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"warningId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/counselor/warning/claim",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "保存干预记录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"warningId\": 1,\n  \"studentId\": 1001,\n  \"content\": \"与学生进行了谈心谈话\",\n  \"actionType\": \"谈心谈话\",\n  \"followUpTime\": \"2026-04-22 14:00:00\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/counselor/intervention/save",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "预警系统模块",
+      "item": [
+        {
+          "name": "获取预警列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/warning/list",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取辅导员预警列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/warning/counselor/list",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "认领预警",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"warningId\": 1,\n  \"counselorId\": 9\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/warning/claim",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "处理预警",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"warningId\": 1,\n  \"processContent\": \"已与学生谈心谈话\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/warning/process",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "结案预警",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"warningId\": 1,\n  \"closeReason\": \"学生状态已好转\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/warning/close",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "数据大屏模块",
+      "item": [
+        {
+          "name": "管理员数据概览",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/overview",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "辅导员数据概览",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/teacher/overview",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "家长联系模块",
+      "item": [
+        {
+          "name": "获取家长联系记录列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/counselor/parent-contact/list",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取学生家长联系记录",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/counselor/parent-contact/student/1001",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "保存家长联系记录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": 1001,\n  \"counselorId\": 9,\n  \"contactContent\": \"与家长沟通学生情况\",\n  \"contactMethod\": \"电话\",\n  \"contactPurpose\": \"了解学生家庭情况\",\n  \"contactResult\": \"沟通顺畅\",\n  \"contactTime\": \"2026-04-21 10:00:00\",\n  \"followUpPlan\": \"下周再次跟进\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/counselor/parent-contact/save",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "测评管理模块",
+      "item": [
+        {
+          "name": "获取测评任务列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/survey/tasks",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "创建测评任务",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"心理健康测评\",\n  \"scaleId\": 1,\n  \"startTime\": \"2026-04-01 00:00:00\",\n  \"endTime\": \"2026-04-30 23:59:59\",\n  \"targetRange\": \"计算机学院\",\n  \"status\": 1,\n  \"createBy\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/survey/task/create",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "操作日志模块",
+      "item": [
+        {
+          "name": "获取操作日志列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/operation-log/list",
+              "host": ["{{baseUrl}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
