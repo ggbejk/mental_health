@@ -1,0 +1,398 @@
+-- ============================================
+-- 高校学生心理危机预警与自助服务平台数据库表结构
+-- 数据库名称: mental_health
+-- ============================================
+
+CREATE DATABASE IF NOT EXISTS mental_health DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+USE mental_health;
+
+-- ============================================
+-- 1. 用户表 (sys_user)
+-- ============================================
+DROP TABLE IF EXISTS sys_user;
+CREATE TABLE sys_user (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID',
+    username VARCHAR(50) NOT NULL COMMENT '用户名',
+    password VARCHAR(255) NOT NULL COMMENT '密码',
+    real_name VARCHAR(100) COMMENT '真实姓名',
+    role VARCHAR(20) NOT NULL COMMENT '角色: ADMIN/COUNSELOR/STUDENT',
+    college VARCHAR(100) COMMENT '学院',
+    major VARCHAR(100) COMMENT '专业',
+    grade VARCHAR(20) COMMENT '年级',
+    class_name VARCHAR(50) COMMENT '班级',
+    gender VARCHAR(10) COMMENT '性别',
+    phone VARCHAR(20) COMMENT '电话',
+    status INT DEFAULT 1 COMMENT '状态: 0-禁用 1-启用',
+    create_time DATETIME COMMENT '创建时间',
+    parent_name VARCHAR(100) COMMENT '家长姓名',
+    parent_phone VARCHAR(20) COMMENT '家长电话',
+    parent_relation VARCHAR(50) COMMENT '与学生关系',
+    INDEX idx_username (username),
+    INDEX idx_role (role),
+    INDEX idx_class_name (class_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
+
+-- ============================================
+-- 2. 心理测评任务表 (survey_task)
+-- ============================================
+DROP TABLE IF EXISTS survey_task;
+CREATE TABLE survey_task (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '任务ID',
+    title VARCHAR(200) NOT NULL COMMENT '任务标题',
+    scale_id BIGINT NOT NULL COMMENT '量表ID',
+    start_time DATETIME NOT NULL COMMENT '开始时间',
+    end_time DATETIME NOT NULL COMMENT '结束时间',
+    target_range VARCHAR(500) COMMENT '目标范围',
+    status INT DEFAULT 0 COMMENT '状态: 0-未发布 1-进行中 2-已结束',
+    create_by BIGINT COMMENT '创建人ID',
+    create_time DATETIME COMMENT '创建时间',
+    INDEX idx_status (status),
+    INDEX idx_scale_id (scale_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='心理测评任务表';
+
+-- ============================================
+-- 3. 测评结果表 (survey_result)
+-- ============================================
+DROP TABLE IF EXISTS survey_result;
+CREATE TABLE survey_result (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '结果ID',
+    task_id BIGINT NOT NULL COMMENT '任务ID',
+    student_id BIGINT NOT NULL COMMENT '学生ID',
+    total_score DECIMAL(10,2) COMMENT '总分',
+    risk_level VARCHAR(20) COMMENT '风险等级: GREEN/YELLOW/ORANGE/RED',
+    report_text TEXT COMMENT '报告文本',
+    create_time DATETIME COMMENT '提交时间',
+    INDEX idx_task_id (task_id),
+    INDEX idx_student_id (student_id),
+    INDEX idx_risk_level (risk_level),
+    UNIQUE KEY uk_task_student (task_id, student_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='测评结果表';
+
+-- ============================================
+-- 4. 测评答案表 (survey_answer)
+-- ============================================
+DROP TABLE IF EXISTS survey_answer;
+CREATE TABLE survey_answer (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '答案ID',
+    task_id BIGINT NOT NULL COMMENT '任务ID',
+    student_id BIGINT NOT NULL COMMENT '学生ID',
+    question_id BIGINT NOT NULL COMMENT '题目ID',
+    answer_score INT NOT NULL COMMENT '答案分数',
+    create_time DATETIME COMMENT '答题时间',
+    INDEX idx_task_id (task_id),
+    INDEX idx_student_id (student_id),
+    INDEX idx_question_id (question_id),
+    UNIQUE KEY uk_task_student_question (task_id, student_id, question_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='测评答案表';
+
+-- ============================================
+-- 5. 预警记录表 (warning_record)
+-- ============================================
+DROP TABLE IF EXISTS warning_record;
+CREATE TABLE warning_record (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '预警ID',
+    student_id BIGINT NOT NULL COMMENT '学生ID',
+    source_type VARCHAR(50) COMMENT '来源类型: SURVEY/EMOTION_DIARY/AI_CHAT/CONFESSION',
+    risk_level VARCHAR(20) COMMENT '风险等级: GREEN/YELLOW/ORANGE/RED',
+    risk_score DECIMAL(10,2) COMMENT '风险分数',
+    risk_features VARCHAR(500) COMMENT '风险特征，多个用中文顿号分隔',
+    status VARCHAR(20) DEFAULT 'UNCLAIMED' COMMENT '状态: UNCLAIMED/CLAIMED/PROCESSING/CLOSED',
+    handler_id BIGINT COMMENT '处理人ID',
+    process_content TEXT COMMENT '处理内容',
+    close_reason VARCHAR(500) COMMENT '关闭原因',
+    create_time DATETIME COMMENT '创建时间',
+    update_time DATETIME COMMENT '更新时间',
+    source_ref_id BIGINT COMMENT '来源记录ID',
+    warning_date DATETIME COMMENT '预警日期',
+    INDEX idx_student_id (student_id),
+    INDEX idx_risk_level (risk_level),
+    INDEX idx_status (status),
+    INDEX idx_handler_id (handler_id),
+    INDEX idx_create_time (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='预警记录表';
+
+-- ============================================
+-- 6. 干预记录表 (intervention_record)
+-- ============================================
+DROP TABLE IF EXISTS intervention_record;
+CREATE TABLE intervention_record (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '干预ID',
+    warning_id BIGINT NOT NULL COMMENT '预警ID',
+    student_id BIGINT NOT NULL COMMENT '学生ID',
+    counselor_id BIGINT COMMENT '辅导员ID',
+    content TEXT COMMENT '干预内容',
+    action_type VARCHAR(50) COMMENT '行动类型',
+    follow_up_time DATETIME COMMENT '跟进时间',
+    create_time DATETIME COMMENT '创建时间',
+    INDEX idx_warning_id (warning_id),
+    INDEX idx_student_id (student_id),
+    INDEX idx_counselor_id (counselor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='干预记录表';
+
+-- ============================================
+-- 7. 情绪日记表 (emotion_diary)
+-- ============================================
+DROP TABLE IF EXISTS emotion_diary;
+CREATE TABLE emotion_diary (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '日记ID',
+    student_id BIGINT NOT NULL COMMENT '学生ID',
+    mood_score INT COMMENT '情绪分数 1-10',
+    mood_label VARCHAR(50) COMMENT '情绪标签: 开心/平静/焦虑/抑郁/愤怒等',
+    diary_text TEXT COMMENT '日记内容',
+    trigger_event VARCHAR(500) COMMENT '触发事件',
+    create_time DATETIME COMMENT '创建时间',
+    INDEX idx_student_id (student_id),
+    INDEX idx_create_time (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='情绪日记表';
+
+-- ============================================
+-- 8. AI聊天记录表 (ai_chat_record)
+-- ============================================
+DROP TABLE IF EXISTS ai_chat_record;
+CREATE TABLE ai_chat_record (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '记录ID',
+    student_id BIGINT NOT NULL COMMENT '学生ID',
+    content TEXT NOT NULL COMMENT '聊天内容',
+    emotion_tag VARCHAR(50) COMMENT '情感标签',
+    source_type VARCHAR(20) DEFAULT 'TEXT' COMMENT '来源类型: TEXT/VOICE',
+    create_time DATETIME COMMENT '创建时间',
+    INDEX idx_student_id (student_id),
+    INDEX idx_create_time (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI聊天记录表';
+
+-- ============================================
+-- 9. 家长联系记录表 (parent_contact_record)
+-- ============================================
+DROP TABLE IF EXISTS parent_contact_record;
+CREATE TABLE parent_contact_record (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '记录ID',
+    student_id BIGINT NOT NULL COMMENT '学生ID',
+    counselor_id BIGINT NOT NULL COMMENT '辅导员ID',
+    contact_time DATETIME NOT NULL COMMENT '联系时间',
+    contact_method VARCHAR(50) COMMENT '联系方式: 电话/微信/家访等',
+    contact_purpose VARCHAR(200) COMMENT '联系目的',
+    contact_content TEXT COMMENT '联系内容',
+    contact_result VARCHAR(200) COMMENT '联系结果',
+    follow_up_plan TEXT COMMENT '后续跟进计划',
+    create_time DATETIME COMMENT '创建时间',
+    INDEX idx_student_id (student_id),
+    INDEX idx_counselor_id (counselor_id),
+    INDEX idx_contact_time (contact_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='家长联系记录表';
+
+-- ============================================
+-- 10. 心理倾诉表 (confession_record)
+-- ============================================
+DROP TABLE IF EXISTS confession_record;
+CREATE TABLE confession_record (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '倾诉ID',
+    student_id BIGINT NOT NULL COMMENT '学生ID',
+    content TEXT NOT NULL COMMENT '倾诉内容',
+    emotion_tag VARCHAR(50) COMMENT '情感标签',
+    is_anonymous INT DEFAULT 0 COMMENT '是否匿名: 0-否 1-是',
+    create_time DATETIME COMMENT '创建时间',
+    voice_path VARCHAR(500) COMMENT '语音路径',
+    INDEX idx_student_id (student_id),
+    INDEX idx_create_time (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='心理倾诉记录表';
+
+-- ============================================
+-- 11. 咨询预约记录表 (consultation_record)
+-- ============================================
+DROP TABLE IF EXISTS consultation_record;
+CREATE TABLE consultation_record (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '预约ID',
+    student_id BIGINT NOT NULL COMMENT '学生ID',
+    counselor_id BIGINT COMMENT '辅导员ID',
+    student_name VARCHAR(100) COMMENT '学生姓名',
+    counselor_name VARCHAR(100) COMMENT '辅导员姓名',
+    consultation_type VARCHAR(50) COMMENT '咨询类型',
+    appointment_time DATETIME COMMENT '预约时间',
+    status VARCHAR(20) DEFAULT 'PENDING' COMMENT '状态: PENDING/SCHEDULED/COMPLETED/CANCELLED',
+    notes TEXT COMMENT '备注',
+    create_time DATETIME COMMENT '创建时间',
+    update_time DATETIME COMMENT '更新时间',
+    INDEX idx_student_id (student_id),
+    INDEX idx_counselor_id (counselor_id),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='咨询预约记录表';
+
+-- ============================================
+-- 12. 操作日志表 (operation_log)
+-- ============================================
+DROP TABLE IF EXISTS operation_log;
+CREATE TABLE operation_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '日志ID',
+    user_id BIGINT COMMENT '用户ID',
+    user_name VARCHAR(100) COMMENT '用户名',
+    user_role VARCHAR(20) COMMENT '用户角色',
+    operation_type VARCHAR(50) COMMENT '操作类型',
+    operation_module VARCHAR(50) COMMENT '操作模块',
+    operation_desc VARCHAR(500) COMMENT '操作描述',
+    request_method VARCHAR(10) COMMENT '请求方法',
+    request_url VARCHAR(500) COMMENT '请求URL',
+    request_params TEXT COMMENT '请求参数',
+    ip_address VARCHAR(50) COMMENT 'IP地址',
+    operation_status VARCHAR(20) COMMENT '操作状态: SUCCESS/FAIL',
+    error_message TEXT COMMENT '错误信息',
+    create_time DATETIME COMMENT '创建时间',
+    INDEX idx_user_id (user_id),
+    INDEX idx_operation_module (operation_module),
+    INDEX idx_create_time (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='操作日志表';
+
+-- ============================================
+-- 13. 量表表 (scale)
+-- ============================================
+DROP TABLE IF EXISTS scale;
+CREATE TABLE scale (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '量表ID',
+    name VARCHAR(100) NOT NULL COMMENT '量表名称',
+    description TEXT COMMENT '量表描述',
+    status VARCHAR(20) DEFAULT 'ACTIVE' COMMENT '状态: ACTIVE/INACTIVE',
+    create_time DATETIME COMMENT '创建时间',
+    update_time DATETIME COMMENT '更新时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='量表表';
+
+-- ============================================
+-- 14. 量表题目表 (scale_question)
+-- ============================================
+DROP TABLE IF EXISTS scale_question;
+CREATE TABLE scale_question (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '题目ID',
+    scale_id BIGINT NOT NULL COMMENT '量表ID',
+    title VARCHAR(500) NOT NULL COMMENT '题目内容',
+    dimension VARCHAR(100) COMMENT '维度',
+    question_order INT COMMENT '题目顺序',
+    is_reverse INT DEFAULT 0 COMMENT '是否反向计分: 0-否 1-是',
+    question_type VARCHAR(20) DEFAULT 'SINGLE' COMMENT '题目类型: SINGLE/MULTI',
+    INDEX idx_scale_id (scale_id),
+    INDEX idx_dimension (dimension)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='量表题目表';
+
+-- ============================================
+-- 15. 量表题目选项表 (scale_question_option)
+-- ============================================
+DROP TABLE IF EXISTS scale_question_option;
+CREATE TABLE scale_question_option (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '选项ID',
+    question_id BIGINT NOT NULL COMMENT '题目ID',
+    option_text VARCHAR(500) NOT NULL COMMENT '选项文本',
+    score INT NOT NULL COMMENT '选项分数',
+    INDEX idx_question_id (question_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='量表题目选项表';
+
+-- ============================================
+-- 16. 用户信息表 (user_info)
+-- ============================================
+DROP TABLE IF EXISTS user_info;
+CREATE TABLE user_info (
+    id INT PRIMARY KEY AUTO_INCREMENT COMMENT '信息ID',
+    username VARCHAR(50) COMMENT '用户名',
+    gender VARCHAR(10) COMMENT '性别',
+    grade VARCHAR(20) COMMENT '年级',
+    college VARCHAR(100) COMMENT '学院',
+    major_type VARCHAR(50) COMMENT '专业类型',
+    only_child VARCHAR(10) COMMENT '是否独生子女: 是/否'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户信息表';
+
+-- ============================================
+-- 17. 题目表 (question) - 旧版
+-- ============================================
+DROP TABLE IF EXISTS question;
+CREATE TABLE question (
+    id INT PRIMARY KEY AUTO_INCREMENT COMMENT '题目ID',
+    title VARCHAR(500) NOT NULL COMMENT '题目内容',
+    type VARCHAR(20) COMMENT '题目类型',
+    category VARCHAR(50) COMMENT '题目分类',
+    is_reverse INT DEFAULT 0 COMMENT '是否反向计分: 0-否 1-是'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='题目表';
+
+-- ============================================
+-- 18. 答案表 (answer) - 旧版
+-- ============================================
+DROP TABLE IF EXISTS answer;
+CREATE TABLE answer (
+    id INT PRIMARY KEY AUTO_INCREMENT COMMENT '答案ID',
+    user_id INT NOT NULL COMMENT '用户ID',
+    question_id INT NOT NULL COMMENT '题目ID',
+    score INT COMMENT '分数',
+    INDEX idx_user_id (user_id),
+    INDEX idx_question_id (question_id),
+    UNIQUE KEY uk_user_question (user_id, question_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='答案表';
+
+-- ============================================
+-- 19. 结果表 (result) - 旧版
+-- ============================================
+DROP TABLE IF EXISTS result;
+CREATE TABLE result (
+    id INT PRIMARY KEY AUTO_INCREMENT COMMENT '结果ID',
+    user_id INT NOT NULL COMMENT '用户ID',
+    total_score INT COMMENT '总分',
+    level VARCHAR(20) COMMENT '等级',
+    INDEX idx_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='结果表';
+
+-- ============================================
+-- 初始化测试数据
+-- ============================================
+
+-- 插入管理员账号 (密码: 123456)
+INSERT INTO sys_user (username, password, real_name, role, status, create_time) VALUES
+('admin', '123456', '系统管理员', 'ADMIN', 1, NOW());
+
+-- 插入辅导员账号
+INSERT INTO sys_user (username, password, real_name, role, college, class_name, status, create_time) VALUES
+('coun001', '123456', '王老师', 'COUNSELOR', '计算机学院', '软工2班', 1, NOW()),
+('coun002', '123456', '李老师', 'COUNSELOR', '计算机学院', '计科1班', 1, NOW());
+
+-- 插入学生账号
+INSERT INTO sys_user (username, password, real_name, role, college, major, grade, class_name, gender, status, create_time) VALUES
+('stu001', '123456', '张三', 'STUDENT', '计算机学院', '软件工程', '大一', '软工2班', '男', 1, NOW()),
+('stu002', '123456', '李四', 'STUDENT', '计算机学院', '软件工程', '大一', '软工2班', '女', 1, NOW()),
+('stu003', '123456', '王五', 'STUDENT', '计算机学院', '计算机科学与技术', '大二', '计科1班', '男', 1, NOW()),
+('stu004', '123456', '赵六', 'STUDENT', '计算机学院', '计算机科学与技术', '大二', '计科1班', '女', 1, NOW()),
+('stu005', '123456', '钱七', 'STUDENT', '计算机学院', '软件工程', '大三', '软工2班', '男', 1, NOW()),
+('stu006', '123456', '孙八', 'STUDENT', '计算机学院', '软件工程', '大三', '软工2班', '女', 1, NOW());
+
+-- 插入量表数据
+INSERT INTO scale (name, description, status, create_time, update_time) VALUES
+('SCL-90症状自评量表', '世界上最著名的心理健康测试量表之一，包括90个项目', 'ACTIVE', NOW(), NOW()),
+('SDS抑郁自评量表', '用于评估抑郁状态的自评量表', 'ACTIVE', NOW(), NOW()),
+('SAS焦虑自评量表', '用于评估焦虑状态的自评量表', 'ACTIVE', NOW(), NOW());
+
+-- 插入测评任务
+INSERT INTO survey_task (title, scale_id, start_time, end_time, target_range, status, create_by, create_time) VALUES
+('2026年春季心理普查', 1, '2026-04-01 00:00:00', '2026-04-30 23:59:59', '全校学生', 1, 1, NOW());
+
+-- 插入测评结果样例
+INSERT INTO survey_result (task_id, student_id, total_score, risk_level, report_text, create_time) VALUES
+(1, 1, 125.50, 'GREEN', '心理状态良好', NOW()),
+(1, 2, 156.30, 'YELLOW', '存在轻度心理问题建议关注', NOW()),
+(1, 3, 189.75, 'ORANGE', '存在中度心理问题需要干预', NOW());
+
+## 表结构说明
+序号 表名 说明 主要字段 1 sys_user 用户表 用户名、密码、角色、班级 
+2 survey_task 测评任务表 任务标题、量表、时间范围 
+3 survey_result 测评结果表 任务ID、学生ID、风险等级 
+4 survey_answer 测评答案表 任务ID、学生ID、题目ID、分数 
+5 warning_record 预警记录表 学生ID、风险等级、状态、处理人 
+6 intervention_record 干预记录表 预警ID、学生ID、干预内容 
+7 emotion_diary 情绪日记表 学生ID、情绪分数、日记内容 
+8 ai_chat_record AI聊天记录表 学生ID、聊天内容、情感标签 
+9 parent_contact_record 家长联系记录表 学生ID、辅导员ID、联系内容 
+10 confession_record 心理倾诉表 学生ID、倾诉内容、情感标签 
+11 consultation_record 咨询预约记录表 学生ID、辅导员ID、预约时间 
+12 operation_log 操作日志表 用户ID、操作类型、请求信息 
+13 scale 量表表 量表名称、描述、状态 
+14 scale_question 量表题目表 量表ID、题目内容、维度 
+15 scale_question_option 量表题目选项表 题目ID、选项文本、分数
+ 16 user_info 用户信息表 用户名、性别、年级等 
+17-19 question/answer/result 旧版表 历史遗留表
+
+## 索引说明
+- 唯一索引 ：确保数据唯一性，如 (task_id, student_id)
+- 普通索引 ：加速查询，如 status、create_time 等常用查询字段
+- 外键关系 ：通过 student_id、task_id 等字段关联各表
